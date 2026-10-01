@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Princess Permit's Rescue</title>
+    <!-- Filled from curriculum.state once the scripts load. -->
+    <meta name="description" content="">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Theme colors for mobile -->
+    <meta name="theme-color" content="#8B4513">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Princess Permit's Rescue">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    
+    <!-- Asset version is ?v=1. Bump it together with the cache name in sw.js. -->
+    <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+    <div id="adventure-app">
+        
+        <!-- Adventure Welcome Screen -->
+        <div id="welcome-screen" class="adventure-screen active">
+            <div class="adventure-hero">
+                <div class="castle-backdrop">
+                    <h1 class="adventure-title">🏰 Princess Permit's Rescue</h1>
+                    <p class="adventure-subtitle">A Knight's Quest Through the Tower of Chaos</p>
+                    
+                    <div class="kingdom-status">
+                        <div class="status-item">
+                            <div class="status-icon">👑</div>
+                            <div class="status-info">
+                                <div class="status-label">Princess Status</div>
+                                <div class="status-value" id="princess-status">Imprisoned</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-icon">🏰</div>
+                            <div class="status-info">
+                                <div class="status-label">Floors Conquered</div>
+                                <div class="status-value" id="floors-conquered">—</div>
+                            </div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-icon">⚔️</div>
+                            <div class="status-info">
+                                <div class="status-label">Enemies Defeated</div>
+                                <div class="status-value" id="enemies-defeated">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="adventure-menu">
+                        <button class="adventure-btn btn-primary" onclick="startAdventure()">
+                            🗡️ Begin Your Quest
+                        </button>
+                        <button class="adventure-btn btn-secondary" onclick="showTowerMap()" id="continue-btn" style="display: none;">
+                            🏰 Continue Adventure
+                        </button>
+                        <button class="adventure-btn btn-secondary" onclick="showAdventureProgress()">
+                            📊 View Quest Progress
+                        </button>
+                        <button class="adventure-btn btn-secondary" onclick="showGameOptions()">
+                            ⚙️ Game Options
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Story Screen -->
+        <div id="story-screen" class="adventure-screen">
+            <div class="story-container">
+                <div id="story-content">
+                    <!-- Story content will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tower Map Screen -->
+        <div id="tower-map-screen" class="adventure-screen">
+            <div class="tower-container">
+                <button class="btn-back" onclick="adventureGame.showScreen('welcome-screen')">← Return to Kingdom</button>
+                <div class="tower-header">
+                    <h2>🏰 Tower of Chaos</h2>
+                    <div class="princess-indicator">
+                        <span class="princess-icon">👸</span>
+                        <span class="princess-text">Princess Permit awaits rescue above...</span>
+                    </div>
+                </div>
+                <div id="tower-map" class="tower-map">
+                    <!-- Tower floors will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Floor Introduction Screen -->
+        <div id="floor-intro-screen" class="adventure-screen">
+            <div class="floor-intro-container">
+                <div id="floor-intro-content">
+                    <!-- Floor intro content will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Battle Screen -->
+        <div id="battle-screen" class="adventure-screen">
+            <div class="battle-container">
+                <button class="btn-back" onclick="adventureGame.abandonBattle()">← Return to Tower</button>
+                <!-- Enemy Status Panel -->
+                <div class="enemy-panel">
+                    <div class="enemy-portrait-container">
+                        <div class="enemy-portrait" id="enemy-portrait">🚸</div>
+                        <div class="enemy-info">
+                            <h3 class="enemy-name" id="enemy-name">Enemy Name</h3>
+                            <div class="enemy-health-bar">
+                                <div class="health-bar-bg">
+                                    <div class="health-bar-fill" id="enemy-health-fill"></div>
+                                </div>
+                                <div class="health-text" id="enemy-health-text">—</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="enemy-dialogue" id="enemy-dialogue" style="display: none;">
+                        Enemy dialogue appears here
+                    </div>
+                </div>
+
+                <!-- Battle Progress -->
+                <div class="battle-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="battle-progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="battle-progress-text">&mdash;</div>
+                </div>
+
+                <!-- Question Panel -->
+                <div class="question-panel">
+                    <div class="battle-question" id="battle-question">
+                        Battle question will appear here
+                    </div>
+                </div>
+
+                <!-- Answer Buttons -->
+                <div class="battle-answers" id="battle-answers">
+                    <!-- Answer buttons will be dynamically generated -->
+                </div>
+
+                <!-- Answer Feedback -->
+                <div class="battle-feedback" id="battle-feedback" style="display: none;">
+                    <!-- Explanation and continue button are generated per answer -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Battle Results Screen -->
+        <div id="battle-results-screen" class="adventure-screen">
+            <div class="results-container">
+                <div id="battle-results-content">
+                    <!-- Battle results will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Boss Introduction Screen -->
+        <div id="boss-intro-screen" class="adventure-screen">
+            <div class="boss-intro-container">
+                <div id="boss-intro-content">
+                    <!-- Boss introduction content will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trial Introduction Screen -->
+        <div id="trial-intro-screen" class="adventure-screen">
+            <div class="trial-intro-container">
+                <div id="trial-intro-content">
+                    <!-- Trial introduction content will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trial Screen (Boss Battle) -->
+        <div id="trial-screen" class="adventure-screen">
+            <div class="trial-container">
+                <button class="btn-back" onclick="adventureGame.abandonBattle()">← Return to Tower</button>
+                <!-- Boss Status Panel -->
+                <div class="boss-panel">
+                    <div class="boss-info">
+                        <h2 id="current-trial">Trial 1</h2>
+                        <h3>Lord Violation's Challenge</h3>
+                        <p class="trial-warning">⚠️ No hints - only perfection will suffice!</p>
+                    </div>
+                </div>
+
+                <!-- Trial Progress -->
+                <div class="trial-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="trial-progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="trial-progress-text">&mdash;</div>
+                </div>
+
+                <!-- Trial Question -->
+                <div class="trial-question-panel">
+                    <div class="trial-question" id="trial-question">
+                        Trial question will appear here
+                    </div>
+                </div>
+
+                <!-- Trial Answers (No feedback) -->
+                <div class="trial-answers" id="trial-answers">
+                    <!-- Trial answer buttons will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Trial Results Screen -->
+        <div id="trial-results-screen" class="adventure-screen">
+            <div class="trial-results-container">
+                <div id="trial-results-content">
+                    <!-- Trial results will be dynamically loaded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Adventure Progress Screen -->
+        <div id="progress-screen" class="adventure-screen">
+            <div class="progress-container">
+                <div class="progress-header">
+                    <button class="btn-back" onclick="adventureGame.showScreen('welcome-screen')">← Back to Kingdom</button>
+                    <h2>📖 Quest Journal</h2>
+                    <p class="quest-subtitle">Chronicles of a Knight's Journey</p>
+                    <div class="knight-status">
+                        <span style="font-size: 1.5rem;">⚔️</span>
+                        <span style="font-weight: 600; color: var(--royal-blue);">Sir Knight of the Road</span>
+                        <span style="font-size: 1.5rem;">🛡️</span>
+                    </div>
+                </div>
+                
+                <div class="quest-journal">
+                    <!-- Left Page: Quest Status -->
+                    <div class="journal-page">
+                        <h3>⚔️ Quest Status</h3>
+                        <div class="quest-status">
+                            <div class="status-grid">
+                                <div class="status-card">
+                                    <span class="status-icon">🏰</span>
+                                    <div class="status-value" id="progress-floors">—</div>
+                                    <div class="status-label">Floors Conquered</div>
+                                </div>
+                                <div class="status-card">
+                                    <span class="status-icon">💎</span>
+                                    <div class="status-value" id="progress-artifacts">—</div>
+                                    <div class="status-label">Treasures Found</div>
+                                </div>
+                                <div class="status-card">
+                                    <span class="status-icon">🎯</span>
+                                    <div class="status-value" id="progress-accuracy">0%</div>
+                                    <div class="status-label">Battle Accuracy</div>
+                                </div>
+                                <div class="status-card">
+                                    <span class="status-icon">⏱️</span>
+                                    <div class="status-value" id="progress-time">0:00</div>
+                                    <div class="status-label">Time Adventuring</div>
+                                </div>
+                            </div>
+                            <div class="progress-narrative" id="progress-narrative">
+                                Your quest to rescue Princess Permit has just begun. The Tower of Chaos awaits your courage, brave knight!
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Page: Current Objective -->
+                    <div class="journal-page">
+                        <h3>📋 Current Objective</h3>
+                        <div class="current-objective" id="current-objective">
+                            <!-- Current objective will be dynamically updated -->
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <div style="font-size: 3rem; margin-bottom: 20px;">🏰</div>
+                                <h4 style="color: var(--royal-blue); margin-bottom: 15px;">Begin Your Quest</h4>
+                                <p style="line-height: 1.6;">Enter the Tower of Chaos and face the first guardian to start your adventure!</p>
+                                <button class="adventure-btn btn-primary" onclick="showTowerMap()" style="margin-top: 20px; padding: 12px 30px;">
+                                    🗡️ To the Tower!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="achievement-section">
+                    <h3>🏅 Achievements</h3>
+                    <div class="achievement-grid" id="achievement-grid">
+                        <!-- Badges are filled in from curriculum.achievements -->
+                    </div>
+                </div>
+
+                <!-- Treasure Vault Section -->
+                <div class="treasure-vault">
+                    <h3>💎 Treasure Vault</h3>
+                    <div class="treasure-grid" id="treasure-grid">
+                        <!-- Treasures will be dynamically loaded -->
+                    </div>
+                </div>
+
+                <!-- Mastery Tracking Section -->
+                <div class="mastery-section">
+                    <h3>📚 Knowledge Mastery</h3>
+                    <div class="mastery-grid" id="mastery-grid">
+                        <!-- Mastery areas will be dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Options Screen -->
+        <div id="options-screen" class="adventure-screen">
+            <div class="options-container">
+                <div class="options-header">
+                    <button class="btn-back" onclick="adventureGame.showScreen('welcome-screen')">← Back to Kingdom</button>
+                    <h2>⚙️ Game Options</h2>
+                </div>
+                
+                <div class="options-content">
+                    <div class="option-section">
+                        <h3>🎮 Game Settings</h3>
+                        <div class="option-item">
+                            <label class="option-label">
+                                <input type="checkbox" id="sound-effects" checked>
+                                <span class="checkmark"></span>
+                                Sound Effects
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="option-section">
+                        <h3>📊 Progress Management</h3>
+                        <button class="option-btn btn-secondary" onclick="exportProgress()">
+                            📤 Export Progress
+                        </button>
+                        <button class="option-btn btn-secondary" onclick="importProgress()">
+                            📥 Import Progress
+                        </button>
+                        <button class="option-btn btn-danger" onclick="resetProgress()">
+                            🗑️ Reset All Progress
+                        </button>
+                    </div>
+
+                    <div class="option-section">
+                        <h3>ℹ️ About</h3>
+                        <div class="about-info">
+                            <p><strong>Princess Permit's Rescue</strong></p>
+                            <p id="about-description"></p>
+                            <p id="about-details"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-overlay">
+        <div class="loading-content">
+            <div class="castle-loading">🏰</div>
+            <h3>Loading the Kingdom...</h3>
+            <div class="loading-spinner"></div>
+            <p>Preparing your epic adventure...</p>
+        </div>
+    </div>
+
+    <!-- Scripts. Load order matters: curriculum, question registry, parts, adventure data, sound, engine. -->
+    <!-- Asset version is ?v=1. Bump it together with the cache name in sw.js. -->
+    <script src="js/curriculum.js?v=1"></script>
+    <script src="js/questions/registry.js?v=1"></script>
+    <script src="js/questions/01-licenses.js?v=1"></script>
+    <script src="js/questions/02-vehicles.js?v=1"></script>
+    <script src="js/questions/03-drivers.js?v=1"></script>
+    <script src="js/questions/04-roads.js?v=1"></script>
+    <script src="js/questions/05-risks.js?v=1"></script>
+    <script src="js/adventureData.js?v=1"></script>
+    <script src="js/soundEffects.js?v=1"></script>
+    <script src="js/AdventureGame.js?v=1"></script>
+    
+    <script>
+        // Immediate file loading verification
+        console.log('🔍 SCRIPT LOAD CHECK:');
+        console.log('   - curriculum.js loaded:', typeof curriculum !== 'undefined');
+        console.log('   - questions/*.js loaded:', typeof questionsData !== 'undefined');
+        console.log('   - adventureData.js loaded:', typeof adventureData !== 'undefined');
+        console.log('   - AdventureGame.js loaded:', typeof AdventureGame !== 'undefined');
+        
+        // Additional global functions for adventure interface
+        function showAdventureProgress() {
+            if (adventureGame) {
+                adventureGame.updateProgressDisplay();
+                adventureGame.showScreen('progress-screen');
+            }
+        }
+
+        function showGameOptions() {
+            if (adventureGame) {
+                adventureGame.showScreen('options-screen');
+            }
+        }
+
+        function exportProgress() {
+            if (adventureGame) {
+                const progress = JSON.stringify(adventureGame.adventureProgress);
+                const blob = new Blob([progress], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'princess-permit-rescue-progress.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function importProgress() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const progress = JSON.parse(e.target.result);
+                            adventureGame.adventureProgress = progress;
+                            adventureGame.saveAdventureProgress();
+                            adventureGame.updateUI();
+                            alert('Progress imported successfully!');
+                        } catch (error) {
+                            alert('Error importing progress file.');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone!')) {
+                localStorage.removeItem(adventureData.config.storageKey);
+                location.reload();
+            }
+        }
+
+        // Initialize the adventure game
+        // Note: adventureGame is declared globally in AdventureGame.js
+        
+        // Failsafe: Hide loading screen after 10 seconds no matter what
+        setTimeout(() => {
+            const loadingOverlay = document.getElementById('loading');
+            if (loadingOverlay && !loadingOverlay.classList.contains('hidden')) {
+                console.warn('⚠️ FAILSAFE: Forcing loading screen to hide after 10 seconds');
+                loadingOverlay.style.display = 'none';
+            }
+        }, 10000);
+        
+        // Initialize adventure game on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🔍 DOM Content Loaded - Starting initialization...');
+            
+            try {
+                // Check if required objects are loaded
+                console.log('🔍 Checking required objects...');
+                console.log('   - adventureData available:', typeof adventureData !== 'undefined');
+                console.log('   - AdventureGame class available:', typeof AdventureGame !== 'undefined');
+                console.log('   - questionsData available:', typeof questionsData !== 'undefined');
+                
+                if (typeof AdventureGame === 'undefined') {
+                    throw new Error('AdventureGame class not loaded');
+                }
+                if (typeof curriculum === 'undefined') {
+                    throw new Error('curriculum not loaded');
+                }
+                if (typeof adventureData === 'undefined') {
+                    throw new Error('adventureData not loaded');
+                }
+                if (typeof questionsData === 'undefined') {
+                    throw new Error('questionsData not loaded');
+                }
+                
+                applyPageMetadata();
+                renderAboutInfo();
+
+                console.log('🏰 Creating AdventureGame instance...');
+                adventureGame = new AdventureGame();
+                console.log('🏰 AdventureGame instance created successfully');
+                
+                console.log('🏰 Starting adventure initialization...');
+                await adventureGame.initializeAdventure();
+                console.log('🏰 Adventure game initialized successfully!');
+                
+                // Update welcome screen stats after initialization
+                setTimeout(() => {
+                    console.log('🏰 Updating welcome screen stats...');
+                    updateWelcomeStats();
+                    checkContinueButton();
+                }, 500);
+            } catch (error) {
+                console.error('❌ Failed to initialize adventure game:', error);
+                console.error('❌ Error stack:', error.stack);
+                
+                // Force hide loading screen even if there's an error
+                console.log('🔧 Force hiding loading screen due to error...');
+                const loadingOverlay = document.getElementById('loading');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                    console.log('🔧 Loading screen hidden');
+                } else {
+                    console.error('❌ Could not find loading overlay element');
+                }
+            }
+        });
+
+        // About copy is derived from curriculum so it never drifts from the game data
+        function applyPageMetadata() {
+            document.title = adventureData.gameTitle;
+            const description = document.querySelector('meta[name="description"]');
+            if (description) {
+                description.content = `An epic adventure that teaches ${curriculum.state.name} driver's test knowledge from the ${curriculum.state.guideTitle}.`;
+            }
+            const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+            if (appleTitle) appleTitle.content = adventureData.gameTitle;
+        }
+
+        function renderAboutInfo() {
+            document.getElementById('about-description').textContent =
+                `An epic adventure game that teaches ${curriculum.state.name} driver's test knowledge through engaging gameplay.`;
+            document.getElementById('about-details').textContent =
+                `Complete with ${curriculum.totalFloors} challenging floors in ${curriculum.parts.length} wings, a final boss battle, and comprehensive traffic law education drawn from the ${curriculum.state.guideTitle}.`;
+        }
+
+        function updateWelcomeStats() {
+            if (adventureGame && adventureGame.adventureProgress) {
+                const progress = adventureGame.adventureProgress;
+                
+                // Update status display
+                document.getElementById('princess-status').textContent = 
+                    progress.gameCompleted ? 'Rescued! 👸' : 'Imprisoned 🔒';
+                    
+                document.getElementById('floors-conquered').textContent = 
+                    `${progress.floorsCompleted.length}/${curriculum.totalFloors}`;
+                    
+                document.getElementById('enemies-defeated').textContent = 
+                    progress.stats.enemiesDefeated.toString();
+                
+                // Update button states using the proper method
+                adventureGame.checkContinueButton();
+            }
+        }
+
+        function checkContinueButton() {
+            if (adventureGame) {
+                // Use the game's method to ensure proper button highlighting
+                adventureGame.checkContinueButton();
+            }
+        }
+    </script>
+</body>
+</html>
